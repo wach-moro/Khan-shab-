@@ -1,1 +1,427 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkMagic Admin</title>
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --paper:#f7f5f0;
+    --accent:#0057ff;
+    --green:#0a7d3c;
+    --line:#d8d4c8;
+    --mono: "SF Mono", "Roboto Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  h1{
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin:0 0 4px;
+  }
+  .sub{
+    font-size:14px;
+    color:#6b6858;
+    margin:0 0 20px;
+  }
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+    border-bottom:1.5px solid var(--line);
+  }
+  .tab{
+    padding:10px 4px;
+    font-size:14px;
+    font-weight:600;
+    color:#8a8672;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1.5px;
+  }
+  .tab.active{
+    color:var(--ink);
+    border-bottom-color:var(--accent);
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin:16px 0 6px;
+  }
+  input, textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    font-size:15px;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  input:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  textarea{resize:vertical; min-height:60px;}
+  button{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:6px;
+    background:var(--accent);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button:active{opacity:0.85;}
+  button.secondary{
+    background:transparent;
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    margin-top:10px;
+  }
+  button.danger{
+    background:transparent;
+    border:1.5px solid #d94040;
+    color:#d94040;
+  }
+  .out{
+    margin-top:20px;
+    display:none;
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+  }
+  .out.show{display:block;}
+  .out-label{
+    font-size:12px;
+    font-weight:600;
+    color:#6b6858;
+    margin-bottom:6px;
+  }
+  .link-box{
+    font-family:var(--mono);
+    font-size:13px;
+    background:var(--paper);
+    padding:10px;
+    border-radius:6px;
+    word-break:break-all;
+    margin-bottom:10px;
+  }
+  .card{
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .card-title{
+    font-weight:700;
+    font-size:15px;
+    margin-bottom:2px;
+  }
+  .card-target{
+    font-size:12px;
+    color:#6b6858;
+    font-family:var(--mono);
+    word-break:break-all;
+    margin-bottom:10px;
+  }
+  .card-actions{
+    display:flex;
+    gap:8px;
+  }
+  .card-actions button{
+    margin:0;
+    padding:8px;
+    font-size:12px;
+    flex:1;
+  }
+  .empty{
+    text-align:center;
+    color:#8a8672;
+    font-size:14px;
+    padding:30px 10px;
+  }
+  .hint{
+    font-size:12px;
+    color:#8a8672;
+    margin-top:4px;
+  }
+  .status{
+    font-size:13px;
+    margin-top:10px;
+    display:none;
+    padding:8px 10px;
+    border-radius:6px;
+  }
+  .status.show{display:block;}
+  .status.ok{color:var(--green); background:#e8f5ec;}
+  .status.err{color:#d94040; background:#fdeaea;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LinkMagic Admin</h1>
+  <p class="sub">Link banao, aur jab chaho target URL edit karo — link wahi rehta hai.</p>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="create">Naya Link</div>
+    <div class="tab" data-tab="manage">Mere Links</div>
+  </div>
+
+  <!-- CREATE PANEL -->
+  <div class="panel active" id="panel-create">
+    <label for="c-title">Title</label>
+    <input id="c-title" placeholder="e.g. My Facebook Page">
+
+    <label for="c-desc">Description</label>
+    <textarea id="c-desc" placeholder="Short description for preview"></textarea>
+
+    <label for="c-image">Image URL</label>
+    <input id="c-image" placeholder="https://...jpg">
+
+    <label for="c-target">Target URL (jahan click pe jayega)</label>
+    <input id="c-target" placeholder="https://example.com">
+
+    <button onclick="createLink()">Link Banao</button>
+    <div class="status" id="create-status"></div>
+
+    <div class="out" id="create-out">
+      <div class="out-label">Filename (isi naam se GitHub pe upload karo)</div>
+      <div class="link-box" id="final-filename"></div>
+      <button class="secondary" onclick="downloadHtmlFile()">HTML File Download Karo</button>
+      <div class="out-label" style="margin-top:14px;">Final Link (upload ke baad yeh Facebook pe post karo)</div>
+      <div class="link-box" id="final-link"></div>
+      <button class="secondary" onclick="copyFinalLink()">Link Copy Karo</button>
+      <p class="hint">File download karke GitHub repo mein isi naam se upload karo. Koi redirect message nahi hoga — click karte hi turant target khulega, aur image bhi preview mein dikhegi.</p>
+    </div>
+  </div>
+
+  <!-- MANAGE PANEL -->
+  <div class="panel" id="panel-manage">
+    <div id="manage-list"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://lgogrnuocpxzhydbanyz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_JU8UB5FJrQY81Gxpm7ZkuQ_DslfF9p9";
+const REDIRECT_BASE = "https://github.com/wach-moro"; // GitHub Pages repo URL
+
+function genId(){
+  return Math.random().toString(36).substring(2, 8);
+}
+
+async function supabaseRequest(path, options = {}){
+  const url = SUPABASE_URL + '/rest/v1/' + path;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  const res = await fetch(url, { ...options, headers });
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || res.statusText);
+  }
+  if(res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// ---- tabs ----
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab === 'manage') renderManageList();
+  });
+});
+
+// ---- create link ----
+let lastFinalUrl = '';
+let lastFilename = '';
+let lastFileContent = '';
+
+function esc(s){
+  return (s||"").replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function slugify(s){
+  return (s||'post').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').substring(0,30) || 'post';
+}
+
+async function createLink(){
+  const title = document.getElementById('c-title').value.trim() || 'Untitled';
+  const desc = document.getElementById('c-desc').value.trim();
+  const image = document.getElementById('c-image').value.trim();
+  const target = document.getElementById('c-target').value.trim();
+  const statusEl = document.getElementById('create-status');
+
+  if(!target){
+    statusEl.textContent = 'Target URL zaroori hai';
+    statusEl.className = 'status show err';
+    return;
+  }
+
+  const id = genId();
+  const filename = slugify(title) + '-' + id + '.html';
+  const finalUrl = REDIRECT_BASE + '/' + filename;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${esc(title)}</title>
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:image" content="${esc(image)}">
+<meta property="og:url" content="${esc(finalUrl)}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(desc)}">
+<meta name="twitter:image" content="${esc(image)}">
+<script>window.location.replace(${JSON.stringify(target)});<\/script>
+</head>
+<body>
+</body>
+</html>`;
+
+  try{
+    await supabaseRequest('links', {
+      method: 'POST',
+      body: JSON.stringify({ id, title, description: desc, image, target })
+    });
+  }catch(e){
+  }
+
+  lastFilename = filename;
+  lastFileContent = html;
+  lastFinalUrl = finalUrl;
+
+  document.getElementById('final-filename').textContent = filename;
+  document.getElementById('final-link').textContent = finalUrl;
+  document.getElementById('create-out').classList.add('show');
+  statusEl.textContent = 'File taiyar hai! Pehle download karo, phir GitHub pe upload karo.';
+  statusEl.className = 'status show ok';
+
+  document.getElementById('c-title').value = '';
+  document.getElementById('c-desc').value = '';
+  document.getElementById('c-image').value = '';
+  document.getElementById('c-target').value = '';
+}
+
+function downloadHtmlFile(){
+  const blob = new Blob([lastFileContent], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = lastFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyFinalLink(){
+  navigator.clipboard.writeText(lastFinalUrl).then(()=>{
+    event.target.textContent = 'Copied!';
+    setTimeout(()=>event.target.textContent = 'Link Copy Karo', 1200);
+  });
+}
+
+
+// ---- manage list ----
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+async function renderManageList(){
+  const listEl = document.getElementById('manage-list');
+  listEl.innerHTML = '<div class="empty">Loading...</div>';
+
+  try{
+    const links = await supabaseRequest('links?select=*&order=id.desc');
+
+    if(!links || links.length === 0){
+      listEl.innerHTML = '<div class="empty">Abhi koi link nahi bana. "Naya Link" tab mein ja kar banao.</div>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    for(const data of links){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-title">${escapeHtml(data.title)}</div>
+        <div class="card-target">→ ${escapeHtml(data.target)}</div>
+        <div class="card-target">Link: ${REDIRECT_BASE}?id=${data.id}</div>
+        <div class="card-actions">
+          <button class="secondary" onclick="editLink('${data.id}')">Edit Target</button>
+          <button class="danger" onclick="removeLink('${data.id}')">Delete</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+    }
+  }catch(e){
+    listEl.innerHTML = '<div class="empty">Error loading links: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+async function editLink(id){
+  try{
+    const links = await supabaseRequest('links?id=eq.' + id + '&select=*');
+    const data = links && links[0];
+    if(!data) return;
+    const newTarget = prompt('Naya Target URL daalo:', data.target);
+    if(newTarget === null || newTarget.trim() === '') return;
+
+    await supabaseRequest('links?id=eq.' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ target: newTarget.trim() })
+    });
+    renderManageList();
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+}
+
+async function removeLink(id){
+  if(!confirm('Yeh link delete karna hai?')) return;
+  try{
+    await supabaseRequest('links?id=eq.' + id, { method: 'DELETE' });
+    renderManageList();
+  }catch(e){
+    alert('Error: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
